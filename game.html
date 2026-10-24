@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yurak Tutish O'yini ❤️</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; background: #fff0f3; color: #333; text-align: center; overflow: hidden; }
+  h1 { margin: 16px 8px 4px; font-size: 32px; }
+  p { margin: 6px 12px; }
+  #info { display: flex; justify-content: center; gap: 24px; font-size: 22px; font-weight: bold; margin: 10px 0; }
+  #arena { position: relative; width: min(92vw, 520px); height: 62vh; margin: 0 auto; background: white; border: 3px solid #ff6b81; border-radius: 20px; overflow: hidden; touch-action: manipulation; }
+  .heart { position: absolute; cursor: pointer; user-select: none; line-height: 1; }
+  .heart.gold { filter: drop-shadow(0 0 8px gold); }
+  button { padding: 14px 28px; font-size: 20px; border: 0; border-radius: 999px; background: #ff4d6d; color: white; cursor: pointer; margin: 12px 0; }
+  button:active { transform: scale(0.96); }
+  #message { font-size: 22px; font-weight: bold; min-height: 30px; }
+  a { color: #ff4d6d; }
+</style>
+</head>
+<body>
+<h1>Yurak Tutish O'yini ❤️</h1>
+<p>30 soniyada tushayotgan yuraklarni bos! Oddiy yurak = 1 ball, oltin yurak = 5 ball.</p>
+<div id="info"><span>Ball: <span id="score">0</span></span><span>Vaqt: <span id="time">30</span>s</span><span>Rekord: <span id="best">0</span></span></div>
+<div id="arena"></div>
+<div><button id="start">O'yinni boshlash ▶</button></div>
+<div id="message">Boshlash uchun tugmani bos!</div>
+<p><a href="./">← HELLO WORLD sahifasiga qaytish</a></p>
+<script>
+  const arena = document.getElementById('arena');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const bestEl = document.getElementById('best');
+  const messageEl = document.getElementById('message');
+  const startBtn = document.getElementById('start');
+  let score = 0, timeLeft = 30, playing = false, spawnTimer = null, clockTimer = null, best = 0;
+  try { best = parseInt(localStorage.getItem('heartGameBest') || '0', 10) || 0; } catch (e) {}
+  bestEl.textContent = best;
+  function spawn() {
+    if (!playing) return;
+    const el = document.createElement('div');
+    const gold = Math.random() < 0.15;
+    el.className = 'heart' + (gold ? ' gold' : '');
+    el.textContent = gold ? '💛' : '❤️';
+    const size = gold ? 52 : 38 + Math.floor(Math.random() * 22);
+    el.style.fontSize = size + 'px';
+    const maxX = Math.max(0, arena.clientWidth - size);
+    el.style.left = Math.floor(Math.random() * maxX) + 'px';
+    el.style.top = '-60px';
+    arena.appendChild(el);
+    const speed = 1.2 + Math.random() * 1.8 + (30 - timeLeft) * 0.04;
+    let y = -60;
+    const fall = setInterval(() => {
+      if (!playing) { clearInterval(fall); el.remove(); return; }
+      y += speed;
+      el.style.top = y + 'px';
+      if (y > arena.clientHeight) { clearInterval(fall); el.remove(); }
+    }, 16);
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!playing) return;
+      score += gold ? 5 : 1;
+      scoreEl.textContent = score;
+      clearInterval(fall);
+      el.remove();
+    });
+  }
+  function endGame() {
+    playing = false;
+    clearInterval(spawnTimer);
+    clearInterval(clockTimer);
+    arena.innerHTML = '';
+    if (score > best) {
+      best = score;
+      try { localStorage.setItem('heartGameBest', String(best)); } catch (e) {}
+      bestEl.textContent = best;
+      messageEl.textContent = '🎉 Yangi rekord! ' + score + ' ball!';
+    } else {
+      messageEl.textContent = 'Vaqt tugadi! Sening balling: ' + score + '. Yana o\'yna!';
+    }
+    startBtn.textContent = 'Yana o\'ynash 🔄';
+    startBtn.disabled = false;
+  }
+  startBtn.addEventListener('click', () => {
+    score = 0; timeLeft = 30; playing = true;
+    scoreEl.textContent = '0'; timeEl.textContent = '30';
+    arena.innerHTML = '';
+    messageEl.textContent = 'Yuraklarni tut!';
+    startBtn.disabled = true;
+    startBtn.textContent = 'O\'yin ketmoqda...';
+    spawnTimer = setInterval(spawn, 650);
+    spawn();
+    clockTimer = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+  });
+</script>
+</body>
+</html>
