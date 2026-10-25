@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The world of Games 🎮</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; background: #0f1226; color: #fff; text-align: center; padding: 16px; }
+  h1 { font-size: 38px; margin: 10px 0 4px; }
+  h2 { margin-top: 0; }
+  .sub { color: #c7ccff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; max-width: 900px; margin: 20px auto; }
+  .card { background: #1e2148; border-radius: 20px; padding: 20px; text-align: left; }
+  .card h2 { text-align: center; }
+  input, button { font-size: 18px; padding: 10px 14px; border-radius: 12px; border: 0; }
+  input { width: 110px; }
+  button { background: #ff4d6d; color: #fff; cursor: pointer; margin: 6px 4px; }
+  button.secondary { background: #5b5bd6; }
+  .msg { min-height: 28px; font-weight: bold; }
+  #clickBtn { width: 100%; padding: 22px; font-size: 24px; background: #ffb020; color: #222; }
+  .memory { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .memory button { font-size: 28px; padding: 14px 0; background: #2a2e6b; }
+  a { color: #ffd166; }
+</style>
+</head>
+<body>
+<h1>The world of Games 🎮</h1>
+<p class="sub">Yangi project — shu yerda, shu chatda yaratildi. Uchta mini o'yin bitta sahifada!</p>
+<p><a href="./">← HELLO WORLD sahifasiga qaytish</a> · <a href="./game.html">❤️ Yurak Tutish O'yini</a></p>
+
+<div class="grid">
+  <div class="card">
+    <h2>1️⃣ Son topish</h2>
+    <p>Men 1 dan 100 gacha son o'yladim. Topib ko'r!</p>
+    <input id="guess" type="number" min="1" max="100" placeholder="1-100">
+    <button onclick="checkGuess()">Tekshirish</button>
+    <button class="secondary" onclick="newGuess()">Yangi o'yin</button>
+    <p class="msg" id="guessMsg">Taxminingni yoz!</p>
+    <p>Urinishlar: <span id="tries">0</span></p>
+  </div>
+
+  <div class="card">
+    <h2>2️⃣ Tez bosish ⚡</h2>
+    <p>10 soniyada tugmani necha marta bosa olasan?</p>
+    <button id="clickBtn" onclick="clickGame()">BOS!</button>
+    <p class="msg" id="clickMsg">Boshlash uchun BOS ni bos!</p>
+    <p>Ball: <span id="clickScore">0</span> · Vaqt: <span id="clickTime">10</span>s · Rekord: <span id="clickBest">0</span></p>
+  </div>
+
+  <div class="card">
+    <h2>3️⃣ Xotira kartalari 🧠</h2>
+    <p>Bir xil juftliklarni top!</p>
+    <div class="memory" id="memory"></div>
+    <p class="msg" id="memoryMsg">Kartani bos!</p>
+    <button class="secondary" onclick="newMemory()">Yangi o'yin</button>
+  </div>
+</div>
+
+<script>
+  // Game 1: Guess the number
+  let secret = 0, tries = 0;
+  function newGuess() {
+    secret = Math.floor(Math.random() * 100) + 1;
+    tries = 0;
+    document.getElementById('tries').textContent = '0';
+    document.getElementById('guessMsg').textContent = 'Yangi son o\'yladim. Topib ko\'r!';
+    document.getElementById('guess').value = '';
+  }
+  function checkGuess() {
+    const v = parseInt(document.getElementById('guess').value, 10);
+    if (!v || v < 1 || v > 100) { document.getElementById('guessMsg').textContent = '1 dan 100 gacha son yoz!'; return; }
+    tries++; document.getElementById('tries').textContent = tries;
+    const m = document.getElementById('guessMsg');
+    if (v === secret) m.textContent = '🎉 Topding! ' + tries + ' urinishda!';
+    else if (v < secret) m.textContent = 'Kattaroq son! ⬆️';
+    else m.textContent = 'Kichikroq son! ⬇️';
+  }
+  newGuess();
+
+  // Game 2: Speed click
+  let cScore = 0, cTime = 10, cTimer = null, cRunning = false, cBest = 0;
+  try { cBest = parseInt(localStorage.getItem('clickBest') || '0', 10) || 0; } catch (e) {}
+  document.getElementById('clickBest').textContent = cBest;
+  function clickGame() {
+    if (!cRunning) {
+      cRunning = true; cScore = 0; cTime = 10;
+      document.getElementById('clickScore').textContent = '0';
+      document.getElementById('clickTime').textContent = '10';
+      document.getElementById('clickMsg').textContent = 'Bos, bos, bos!';
+      cTimer = setInterval(() => {
+        cTime--; document.getElementById('clickTime').textContent = cTime;
+        if (cTime <= 0) {
+          clearInterval(cTimer); cRunning = false;
+          if (cScore > cBest) { cBest = cScore; try { localStorage.setItem('clickBest', String(cBest)); } catch (e) {} document.getElementById('clickBest').textContent = cBest; }
+          document.getElementById('clickMsg').textContent = 'Vaqt tugadi! Ball: ' + cScore;
+        }
+      }, 1000);
+    } else {
+      cScore++; document.getElementById('clickScore').textContent = cScore;
+    }
+  }
+
+  // Game 3: Memory
+  let first = null, lock = false, pairs = 0;
+  function newMemory() {
+    const emojis = ['❤️','⭐','🐱','🚀','❤️','⭐','🐱','🚀'];
+    emojis.sort(() => Math.random() - 0.5);
+    const box = document.getElementById('memory');
+    box.innerHTML = ''; first = null; lock = false; pairs = 0;
+    document.getElementById('memoryMsg').textContent = 'Kartani bos!';
+    emojis.forEach((em) => {
+      const b = document.createElement('button');
+      b.textContent = '❓'; b.dataset.value = em;
+      b.onclick = () => {
+        if (lock || b.textContent !== '❓') return;
+        b.textContent = em;
+        if (!first) { first = b; return; }
+        if (first.dataset.value === em) {
+          document.getElementById('memoryMsg').textContent = '✅ Juftlik topildi!';
+          first = null; pairs++;
+          if (pairs === 4) document.getElementById('memoryMsg').textContent = '🎉 Hammasi topildi!';
+        } else {
+          lock = true;
+          const prev = first; first = null;
+          setTimeout(() => { prev.textContent = '❓'; b.textContent = '❓'; lock = false; }, 700);
+        }
+      };
+      box.appendChild(b);
+    });
+  }
+  newMemory();
+</script>
+</body>
+</html>
